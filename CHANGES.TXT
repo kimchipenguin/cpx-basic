@@ -1,0 +1,352 @@
+==> Version 1.30 16.10.2026; Mia Jaap (mj@jaapan.de)
+* new functions
+   INSTR$(h$,n$): The position of n$ in h$. 0, if not found
+   REPLACE$(s$, old$, new$): Replaces every occurrence of old$ in s$ with new$ 
+   EXISTS(f$): Checks, if the file/folder exists (1)
+   TRIM$, LTRIM$, RTRIM$: Removes spaces
+   REPEAT$(n, s$): Repeat characters
+   COOKIE(s$): Returns value of cookie ("_CPU")
+* new commands
+   SLEEP n: Waits n milli seconds
+* other changes
+   compiled with MiNTLib (bigger file size)...
+   file commands will open a file selector if no parameter has been given. "LOAD"
+      is enough to load a new program.
+   Direct mode will remember the last ten commands. Cycle through them with
+      the cursor keys.
+==> Version 1.20 05.04.2020; Mia Jaap (mj@jaapan.de)
+* neuer Befehl
+   lower$: Kleinschreibung des Strings
+   upper$: Grossschreibung des Strings
+   round: Zahl runden (5.6 => 6)
+==> Version 1.11 19.12.2001; Mia Jaap (mj@jaapan.de)
+* neuer Befehl
+   mirror$: dreht einen String um
+==> Version 1.10 13.08.2001; Mia Jaap (mj@jaapan.de)
+* neue Aliase:
+	home: entspricht CLS (wird in AppleSoft Basic verwendet)
+	locate: entspricht gotoxy
+	position: entspricht gotoxy (aus Atari XL-Basic)
+	dimension: entspricht dim (aus Fortran)
+	': entspricht rem
+==> Version 1.08 13.08.2001; Mia Jaap (mj@jaapan.de)
+* neue Befehle:
+	celsius(x): rechnet Fahrenheit in Celsius um
+	fahrenheit(x): rechnet Celsius in Fahrenheit um
+	ceil(x): entspricht der C-Funktion und rundet auf - aus ceil(4.4) wird
+				z.B. 5.
+	floor(x): floor rundet ab - aus floor(4.4) wird 4.
+==> Version 1.07; Jan Starzynski (p67@hp1.uni-rostock.de)
+* im VT-52 Emulator fehlt nur noch das Setzen von Farben (ESC b & c)
+* CHR$ 0 erzeugt eine String, der ein Null-Zeichen enthält, außerdem
+  eine 4 Byte lange Kennung hierfür. (bedingt durch C, wo die Null als
+  Ende-Symbol einer Zeichenkette steht). Der Ausdruck LEN CHR$ 0
+  liefert folglich 5.
+* erweiterte Funktionen:
+	- bak=GEMDOS(x)
+    + Dateifunktionen
+        . FOPEN name$[,opt$], schlie?e bereits geöffnete Datei,
+                Öffne neue Datei, opt$ darf folgende Optionen
+                beinhalten:
+                b Binärmodus, alle ausgegebenen Zeichen werden
+                 unverändert übernommen (z.B. keine lf->cr/lf Wandlung)
+                n schaffe neue Datei: eine bereits bestehende Datei
+                  wird zuerst gelöscht
+        . FCLOSE, Datei schlie?en
+        . FINPUT "prompt";what... ,Lies aus geöffneter Datei bzw.
+                 wenn keine geöffnet von der Tastatur
+                 ( wenn aus Datei gelesen wird, wird der Prompt unterdrückt)
+        . FPRINT what, schreibe ans Ende der geöffneten Datei bzw.
+                 Bildschirm
+        . FSEL$ [ext$], bringt eine Dateiselektbox auf den Schirm und gibt die
+                 eingegebene Datei als String zurück. Wenn Abbruch gedrückt
+                 wurde, ist das ein leerer String. ext$ wird als
+                 Dateimaske verwendet (z.B. *.BAS), Standard ist '*.*'
+        . ERRNO, sollte nach FPRINT oder FINPUT gelesen werden.
+          Enthält 0, wenn alles in Ordnung gegangen ist, sonst einen Wert<>0
+          Nach jedem lesen wird ERRNO wieder automatisch auf 0 gesetzt.
+        . Die Dateifunktionen sind nicht besonders schnell, sondern
+          besonders sicher gehalten. Sie sollen vor allem dem bequemen
+          Austausch von Daten dienen und nicht umfangreichen
+          Dateimanipulationen.
+    + Spezielle Befehle, um auf Schnittstellen zugreifen zu können
+      Erlaubte Geräte sind dabei
+        . "PRN", Drucker
+        . "AUX", serielle Standard-Schnittstelle
+        . "CON", die Konsole
+        . "MIDI", Midiport
+        . "IKBD", Tastaturprozessor
+        . "RCON", Konsole ohne Emulation
+        . "MOD1", Modem 1
+        . "MOD2", Modem 2
+        . "SER1", Seriell 1
+        . "SER2", Seriell 2
+        . nicht alle Geräte sind für alle Rechner oder alle Zwecke
+          sinvoll, da liegt die Verantwortung beim Programmierer
+          * a=INBYTE dev$, liest ein Byte von einer Schnittstelle
+            Der Wertebereich der Rückgabewerte liegt zwischen 0 und 255.
+            Ist der Rückgabewerte <0, war kein Zeichen verfügbar
+          * a=OUTBYTE dev$,byte, übergibt ein Byte. Ist der Rückgabewert>=0
+            konnte das Zeichen ausgegeben werden.
+
+---------------------------------------------------------------------
+==> Version 1.04; Änderungen von Torsten Dix, Stand: 20.08.1993
+* erweiterte Funktionen:
+	+ FILES "x:\path\*.*"
+		Dateien und Directory anzeigen
+	+ MKDIR "x:\path" 
+		Erzeuge Directory
+	+ CHDIR "x:\path"
+		Wechsle Directory und/oder Laufwerk
+	+ RMDIR "x:\path"
+		Loesche Directory
+	+ a$=PATH$
+		Liefert aktuelles Laufwerk und Path
+	+ a$=TIME$
+		Liefert Zeit und Datum als ASCII-String
+	+ t=TIMER
+		Liefert Zeit seit Einschalten/Reset in 1/200sec
+* Lokaler Path wird verwaltet 
+
+==> Version 1.04; Änderungen von Oliver Teuber, Stand: 20.08.1993
+* erweiterte Funktionen:
+	+ bak=ALERT(1,"[1][Hallo][OK]")
+		Anzeigen einer form_alert-Box.
+	. bak=GEMDOS(x)
+		Gemdos-Call ohne Parameter ...
+* Bugfix: Es gab einen Fehler beim Laden von Quelltexten.
+  (setvbuf auch bei "NULL"-Filepointer!)
+
+---------------------------------------------------------------------
+==> Version 1.03; Änderungen von Jan Starzynski, Stand: 11.8.1993
+* jede Menge Optimierungen
+  Ergebnis: mehr Funktion bei gleicher Länge
+* Bugfix: Es gab einen harten Fehler beim Anlegen von Feldern.
+  (ein double-Werte wurde mit 8 Byte angesetzt, hat in PURE-C aber 16?!)
+* Es gibt jetzt vier verschiedene CPX
+    + BASIC000.CPX, die Variante, die überall laufen sollte
+    + BASICA00.CPX, nutzt statt eines eigenen den Systemzeichensatz,
+                    muß dazu aber LINEA-INIT nutzen. Könnte bei den
+                    Nicht-Standard-Auflösungen (z.B. mit
+                    Grafikkarten) Probleme geben (probieren).
+    + BASIC030.CPX, läuft nur auf Systemem mit (mind.)
+                    68020-Prozessor und 68881-FPU.
+    + BASICA30.CPX, wie 030, nutzt aber auch den Systemzeichensatz
+                    (wie A00)
+    + wozu das ganze Kuddelmuddel? Nun ja. Wer einen TT oder Falcon
+      hat, wird sich freuen, über 10 KByte in der Länge zu sparen und
+      außerdem ein schnelleres Programm zu haben. Den
+      Systemzeichensatz habe ich implementiert, um
+        a. Platz zu sparen
+        b. im Basic die gleichen Ausgaben zu erhalten wie in
+           anderen Programmen
+* Zeitverhalten verbessert (Umschalten von Basic zu GEM nach 50 msec statt
+ 100 msec und 20 msec Zeit für GEM statt 50 msec)
+ Das macht die Ausgaben etwas fließender und die Arbeit mit dem Hauptprogramm
+ auch. Wenn nötig, holt sich GEM die Zeit, die es braucht, von allein.
+* verschiedene Zahlenbasen erlaubt für Eingabe
+    + $Zahl, Hexadezimalzahl (Ziffern: 0-9,a-f,A-F)
+    + &Zahl, Oktalzahl       (Ziffern: 0-7)
+    + %Zahl, Binärzahl       (Ziffern: 0-1)
+    +  Zahl, Dezimalzahl     (Ziffern: 0-9)
+* Break durch CTRL-C
+* Abbruch einer Eingabe durch CTRL-C
+* Anhalten/Fortsetzen der Bildschirmausgabe mit CTRL-S/CTRL-Q
+* alle Tastenkombinationen mit CTRL werden abgefangen und teilweise als
+  Funktionstasten für die wichtigsten BASIC-Befehle benutzt
+    + B GOSUB
+    + C BREAK, mit SHIFT: CONTINUE
+    + D DATA
+    + E RUN, mit SHIFT: RUN FSEL$ '*.BAS'
+    + F FOR, mit SHIFT: FOPEN FSEL$ '*.TXT'
+    + G GOTO
+    + I IF
+    + L LIST
+    + M MERGE, mit SHIFT: MERGE FSEL$ '*.BAS'
+    + N NEXT
+    + O LOAD, mit SHIFT: LOAD FSEL$ '*.BAS'
+    + Q BYE
+    + R RETURN
+    + S SAVE, mit SHIFT: SAVE FSEL$ '*.BAS'
+    + T THEN
+* INPUT kann durch '#' abgekürzt werden (wie PRINT durch '?')
+* alle BASIC-Schlüsselwörter können durch einen '.' abgekürzt werden
+  z.B. 'PRINT x' durch 'pr. x'. Es wird dabei aber nicht überprüft,
+  ob die Abkürzung mehrere Bedeutungen hat, sondern die erste gefundene
+  genommen. Nach dem Punkt können noch weitere Buchstaben folgen,
+  z.B.: 'u.' für 'USING' und 'u.$' für 'USING$'.
+* Wird ein Buchstabe mir der linken Maustaste angeklickt oder ein
+  Bereich mit gedrückter linker Maustaste überfahren, werden die
+  Buchstaben in die Eingabe übernommen.
+  Doppelklick erzeugt zusätzlich ein Return.
+* Bei INPUT können die Variablen wie bei PRINT durch ',' oder ';'
+  oder auch nur durch Leerzeichen voneinander getrennt werden.
+  Au?erdem können für alle Variablen einzelne Promptstrings angegeben
+  werden.
+* (kleine) Hilfe über HELP-Taste
+* der VT-52 Emulator kann jetzt auch REV_ON und REV_OFF (esc-p und esc-q)
+	+	Enter reverse video mode
+	+	Exit reverse video mode
+* Sichern der Quelltexte bei SAVE mit Endung '.BAS' (statt '.TEXT')
+* Wenn das BOOTINIT-Flag des CPX gesetzt ist, werden das beim Booten aktuelle
+  Laufwerk und der Pfad bei jeder Dateioperation als Standardwerte gesetzt.
+  Dadurch gammeln die .BAS-Dateien nicht überall auf der Platte rum.
+  Ist BOOTINIT nicht gesetzt, wird als Standard 'C:\' genutzt. Falls es dieses
+  Laufwerk nicht gibt: 'A:\'.
+* erweiterte Funktionen:
+    + SQU x == SQR x
+    + RCP x für 1/x
+    + alle trigonometrischen Funktionen und ihre inversen
+        . SIN x,COS x,TAN x
+        . ASIN x,ACOS x,ATAN x == ARCTAN x
+    + alle Hyperbelfunktionen und ihre inversen
+        . SINH x,COSH x,TANH x
+        . ASINH x,ACOSH x,ATANH x
+    + erweiterte logarithmische Funktionen
+        . LN x == LOG x für den natürlichen Logarithmus log_{e}
+        . LG x für log_{10}
+        . LD x für log_{2}
+    + erweiterte Exponentiationsfunktionen
+        . EXP x, Standard e^x
+        . TEN x, 10^x
+        . TWO x, 2^x
+    + Konvertierungen zwischen Zahlenbasen
+        . HEX$ x, Zahlausgabe als hexadizmaler String
+        . OCT$ x, Zahlausgabe als oktaler String
+        . BIN$ x, Zahlausgabe als binärer String
+    + FACT x, Fakultätsfunktion
+    + RAND, Zufallszahlen zwischen 0 und 1, werden mit Hilfe der
+            XBIOS-Funktion Random() erzeugt.
+        . RAND x, Zufallszahlen im Bereich 0 bis x-1
+    + Dateifunktionen
+        . FOPEN name$, schlie?e bereits geöffnete Datei, Öffne neue Datei
+        . FCLOSE, Datei schlie?en
+        . FINPUT "prompt";what... ,Lies aus geöffneter Datei bzw.
+                 wenn keine geöffnet von der Tastatur
+                 ( wenn aus Datei gelesen wird, wird der Prompt unterdrückt)
+        . FPRINT what, schreibe ans Ende der geöffneten Datei bzw.
+                 Bildschirm
+        . FSEL$ ext$, bringt eine Dateiselektbox auf den Schirm und gibt die
+                 eingegebene Datei als String zurück. Wenn Abbruch gedrückt
+                 wurde, ist das ein leerer String. ext$ wird als
+                 Dateimaske verwendet (z.B. *.BAS)
+        . ERRNO, sollte nach FPRINT oder FINPUT gelesen werden.
+          Enthält 0, wenn alles in Ordnung gegangen ist, sonst einen Wert<>0
+          Nach jedem lesen wird ERRNO wieder automatisch auf 0 gesetzt.
+        . Die Dateifunktionen sind nicht besonders schnell, sondern
+          besonders sicher gehalten. Sie sollen vor allem dem bequemen
+          Austausch von Daten dienen und nicht umfangreichen
+          Dateimanipulationen.
+    + Winkelsysteme, Standard ist RAD
+        . DEGREE, alle Winkel werden als Altgrad betrachtet
+                 (Vollkreis hat 360 Grad)
+        . GRAD,  Neugrad (Vollkreis hat 400 Grad)
+        . RAD,   Radiant (Vollkreis hat 2*Pi)
+    + Umrechnen von Dezimalgrad in Grad,Min,Sec und umgekehrt
+        . DMS$ x, umrechnen in einen String GG:MM:SS,rest
+        . DEG x$, Umrechen eines Strings der obigen Form in Dezimalgrad
+    + CLS, Löschen des Bildschirmes und Setzen des Cursor in die linke
+           obere Ecke
+    + CLEAR löscht alle Variablen, Schleifen und setzt die Datas zurück
+            (nicht in Unterprogrammen einsetzen!)
+    + PEEK und POKE liefern laufen im Supervisor-Modus, die Interrupts
+          werden ausgeschaltet
+        . au?erdem gibt es jetzt auch PEEKW, PEEKL, POKEW, POKEL
+          um words (2 Byte) und longs (4 Byte) auf einmal lesen
+          und setzen zu können
+    + INKEY$, liefert einen leeren String (""), wenn keine Taste 
+             gedrückt wurde, sonst die zuletzt gedrückte Taste
+             Ausserdem bewirkt ein Aufruf dieser 'Funktion' mit Zwang
+             ein Umschalten zu GEM, kann also genutzt werden, etwas
+             mehr Rechenzeit freizugeben.
+    + USING,USING$ präzisieren der Ausgabegenauigkeit, -breite und
+                   -ausrichtung
+        . wird eine Breite<0 angegeben, erfolgt die Ausgabe linksbündig,
+          sonst rechtsbündig
+        . USING, setzt die Zahl der ausgegebenen Nachkommastelle auf 10
+        . USING x, setzt die Zahl der Nachkommastellen auf x
+        . USING x,y, wie oben, es werden Leerzeichen ausgegeben, bis
+            Breite y erreicht ist.
+        . mit USING gesetzte Werte gelten für alle folgenden Ausgaben
+        . USING$ ist USING für die Ausgabe von Strings: die Nachkommastellen
+          sind hier die Anzahl der maximal auszugebenden Buchstaben
+        . Die Angabe der Präzision kann unterbleiben. Es mu? dann nach USING
+          gleich das Komma folgen.
+        . WARNUNG: wird die Breite ungleich 0 oder 1 gesetzt, werden
+          Escape-Sequenzen oft nicht mehr gehen, da mit Leerzeichen
+          aufgefüllt wird.
+          Bsp.:  
+                USING$ 0,4:PRINT chr$(27),'E'
+          bewirkt die Ausgabe des Escape-Zeichens mit 3 Leerzeichen
+          dahinter. Das 'E' wird dann als normaler Buchstabe 
+          interpretiert.
+          Mit 
+                USING$:PRINT chr$(27),'E'
+          funktioniert alles wie gedacht.
+          Aber auch
+                USING$ 0,4:PRINT chr$(27)+'E'
+          funktioniert (+ statt , )!
+    + LABEL line, kann zur Zuweisung einer Zeilennummer zu einer
+            Variablen verwendet werden. Bei einem RENUM-Befehl wird
+            die Zahl hinter LABEL richtig umgerechnet. Dadurch
+            geht z.B.:
+            LIST
+            -->    1 h=LABEL 1:goto h
+            RENUM
+            LIST
+            -->    10 h=LABEL 10:goto h
+    + Grafikfunktionen, der Punkt (0,0) ist links unten, die
+      x-Koordinaten laufen von 0 bis 255 und die y-Koordinaten
+      von 0 bis 175
+        . PLOT x,y setzt einen Punkt an der Stelle (x,y)
+        . LINE x1,y1,x2,y2, zieht eine Linie von (x1,y1) zu (x2,y2)
+        . CIRCLE x1,y1,r, zieht eine Kreis um (x1,y) mit Radius r
+    + CONTINUE, mit STOP oder Ctrl-C abgebrochen Programme können
+                mit diesem Befehl weitergeführt werden.
+                Ohne STOP oder Ctrl-C bewirkt CONTINUE gar nichts,
+                kann also als Dummy-Anweisung benutzt werden.
+    + TRON, schaltet den Trace-Modus ein: nach jeder abgearbeiteten
+            Zeile wird diese gelistet und auf ein Return gewartet.
+            Mit Ctrl-C kann unterbrochen und mit CONTINUE fortgesetzt
+            werden. Das gibt die Möglichkeit, Variablen zu betrachten
+            e.t.c.
+            Hier gibt es einen Fehler: die erste abgearbeitete Programm-
+            zeile wird zweimal angezeigt. 
+    + TROFF, schaltet den Trace-Modus wieder aus.
+
+---------------------------------------------------------------------
+==> Version 0.01; Änderungen von Oliver Teuber, Stand: 24.04.1993
+* Erste CPX-BASIC-Version (just for fun), mit ein paar Fehlern :-)
+* Es gibt zwei verschiedene CPX-Versionen
+    + BASIC000.CPX, die Variante, die überall laufen sollte
+    + BASIC030.CPX, läuft nur auf Systemem mit (mind.)
+                    68020-Prozessor und 68881-FPU.
+* vt52-Terminal
+	+	Cursor up
+	+	Cursor down
+	+	Cursor forward
+	+	Cursor backward
+	+	Clear screen
+	+	Home cursor
+	+	Reverse index
+	-	Erase to end of page
+	-	Clear to end of line
+	-	Insert Line
+	-	Delete Line
+	+	Position cursor
+	+	Set foreground color
+	+	Set background color
+	-	Erase beginning of display
+	+	Enable cursor
+	+	Disable cursor
+	+	Save cursor position
+	+	Restore cursor position
+	-	Erase entire line
+	-	Erase beginning of line
+	-	Enter reverse video mode
+	-	Exit reverse video mode
+	-	Wrap at end of line
+	-	Discard at end of line
+* erweiterte Funktionen:
+	+	GOTOXY x,y
+			Cursor nach Spalte x und Zeile y

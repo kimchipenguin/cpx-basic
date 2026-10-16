@@ -1,0 +1,14 @@
+; PRJ fuer das BASIC-Builder-Programm
+e:\pc\cpxbasic.120\prog\basbuild.prg
+
+=                  ; list of modules follows...
+
+PCSTART.O
+basbuild          ; compile 
+
+PCSTDLIB.LIB       ; standard library
+PCTOSLIB.LIB       ; TOS library
+PCGEMLIB.LIB       ; TOS library
+
+
+;>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
