@@ -4,7 +4,8 @@
 | The BASIC interpreter runs as a coroutine on its own stack. The CPX
 | timer starts or continues it (StartBASIC, ContBASIC), BASIC gives
 | control back with WaitBASIC or, every 50 ms, with BreakBASIC.
-| exit() ends BASIC and returns 'STOP' to the CPX side.
+| basic_exit() (exit() in the C sources, see P2C.H) ends BASIC and
+| returns 'STOP' to the CPX side.
 |
 | Unlike the Pure C version, BreakBASIC and ContBASIC keep d2/a2 around
 | the TOS traps: GCC expects them to survive a function call.
@@ -13,10 +14,10 @@
 	.text
 
 |-------------------------------------------------------------------
-| void exit(int)  -  BASIC ends: back to the CPX, return 'STOP'
+| void basic_exit(int)  -  BASIC ends: back to the CPX, return 'STOP'
 |-------------------------------------------------------------------
-	.globl	_exit
-_exit:
+	.globl	_basic_exit
+_basic_exit:
 	movem.l	%d0-%d7/%a0-%a7,regBASIC
 	movem.l	regCPX,%d0-%d7/%a0-%a7
 	move.l	#0x53544F50,%d0		| 'STOP'
@@ -29,7 +30,7 @@ _exit:
 _StartBASIC:
 	movem.l	%d0-%d7/%a0-%a7,regCPX
 	movem.l	regBASIC,%d0-%d7/%a0-%a7
-	move.l	#_exit,-(%sp)		| basic() returns into exit
+	move.l	#_basic_exit,-(%sp)	| basic() returns into basic_exit
 	st	_ctrlsq
 	jmp	_basic
 

@@ -4,7 +4,7 @@
 #include <string.h>
 #include "xcontrol.h"
 
-#define VERS	0x130
+#define VERS	0x135
 
 CPXHEAD head;
 typedef struct PH

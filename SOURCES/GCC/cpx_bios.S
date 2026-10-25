@@ -14,6 +14,9 @@
 |
 | The string functions are exported as BAS_strcpy etc.; glo.h maps the
 | C names onto them, so MiNTLib keeps its own versions.
+|
+| With CHIPBAS_APP (the GEM application) only the string functions and
+| peekpoke are assembled; the screen is GEM/gemscrn.c there.
 |------------------------------------------------------------------
 
 	.text
@@ -143,6 +146,7 @@ strlen_:
 	eor.l	#-1,%d0
 3:	rts
 
+#ifndef CHIPBAS_APP
 |------------------------------------------------------------------
 |  Draws a line with the Bresenham method
 |  taken from:
@@ -257,6 +261,8 @@ plotpoint_:
 	st	_DirtyScreen
 1:	rts
 
+#endif /* !CHIPBAS_APP */
+
 |------------------------------------------------------------------
 | Moves the given number of bytes from source to dest
 | (called in supervisor mode via Supexec)
@@ -275,6 +281,7 @@ _peekpoke:
 	move.w	%d1,%sr
 	rts
 
+#ifndef CHIPBAS_APP
 GetScreen:
 	lsl.w	#8,%d0
 	lea	_screen,%a0
@@ -579,3 +586,4 @@ _screen:
 
 _charscreen:
 	.skip	32*22		| memory for all characters
+#endif /* !CHIPBAS_APP */

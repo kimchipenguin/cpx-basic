@@ -462,6 +462,11 @@ extern Anyptr my_memset PP( (Anyptr, int, size_t) );
 #endif
 
 
+/* exit() of the BASIC is a coroutine switch back (GCC/cpxmains.S), not
+   the C library's exit() */
+void basic_exit(int code);
+#define exit basic_exit
+
 #endif    /* P2C_H */
 
 

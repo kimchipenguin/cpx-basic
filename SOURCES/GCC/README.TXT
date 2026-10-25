@@ -3,6 +3,8 @@ CPX-BASIC with the m68k-atari-mint GCC cross-compiler
 
 Building
 --------
+(see also "The GEM application" below)
+
 In the project folder (the one with the Makefile):
 
     make            all four modules -> CPX/BASIC000.CPX, BASIC030.CPX,
@@ -103,3 +105,98 @@ Changes in the shared sources (all also fine for Pure C):
 - TOKSTR.C: the token count check without sizeof in #if for GCC.
 - P2C.H, PROTO.H: trailing ^Z removed.
 The originals of the changed files are in test/orig-src.
+
+
+The GEM application (CHIPBAS)
+-----------------------------
+`make app` builds APP/CHIPBAS.APP (68000), APP/CHIPB030.APP
+(68020+ with FPU) and APP/CHIPBV4E.APP (FireBee): the same interpreter as a GEM program with a
+resizable window. APP/README.TXT is the user manual, APP/readme.rtf
+the same for modern systems (python3 tools/rtf.py APP/README.TXT
+APP/readme.rtf).
+
+Line editing (both targets, CPX_IO.C FGets): cursor left/right
+(KEY_CUR_LEFT/RIGHT from cpx_key/do_key), typing inserts, Backspace
+deletes before, Delete under the cursor (on the CPX Delete used to be
+a second Backspace), control characters are ignored. Works at the
+prompt and for INPUT; the history stays prompt-only.
+
+Built from the shared sources with -DCHIPBAS_APP (not GEMAPP: GEMlib
+already defines that name):
+SOURCES/GEM/gemmain.c   replaces CPX_MAIN.C: menu bar built in C,
+                        window, event loop, keyboard, menu commands
+SOURCES/GEM/gemscrn.c   replaces the screen part of cpx_bios.S
+cpxmains.S, cpx_bios.S  the coroutine switch; only the string and
+                        peekpoke routines of cpx_bios.S
+GCC/stdio.c, tosglue.c  as in the CPX; stdio.c under bas_ names so
+                        MiNTLib keeps its own stdio (normal startup)
+
+How it works:
+- BASIC runs as the same coroutine as in the CPX. The event loop calls
+  ContBASIC() when BASIC has work (a running program, keys in the key
+  buffer); BASIC gives control back after 50 ms (BreakBASIC) or when
+  it waits for a key (WaitBASIC). While BASIC waits, evnt_multi()
+  waits with a 100 ms timer instead of polling.
+- The screen is a character grid (max_cx x max_cy, MAX_CX/MAX_CY are
+  variables for CHIPBAS_APP) with a reverse flag per character, plus a
+  monochrome graphics bitmap of the same size. Text is drawn with
+  v_gtext in the system font, the bitmap with vrt_cpyfm; a character
+  clears the graphics under its cell, graphics scroll with the text
+  (as on the CPX).
+- Only changed rows/columns are redrawn (the VDI is slow at text: a
+  full 80-character row took ~150 ms per update on an 8 MHz ST). A
+  scroll of the whole screen is a vro_cpyfm screen copy where the
+  window is completely visible, else a full redraw.
+- Scrollback: the top line of each full-screen scroll goes into a ring
+  of 500 lines (text and reverse flags, trailing spaces cut, no
+  graphics). `view' = lines scrolled back; window row r shows grid row
+  r - view, or a scrollback line if that is negative. While the user
+  looks back, new output keeps the view where it is. Slider: WM_VSLID,
+  WM_ARROWED, Shift+Up/Down; any other key goes back to view 0.
+  Shrinking the window pushes the lines above the cursor into the
+  scrollback, growing it pulls them back if the text reached the
+  bottom.
+- Iconify (SMALLER) where appl_getinfo(AES_WINDOW) says so; the
+  iconified window shows the CPX icon (from cpxhead.bin) and "BASIC",
+  BASIC keeps running. The size before iconify is remembered; while
+  iconified the event loop also takes double clicks (MU_BUTTON) and
+  uniconifies itself, as not every AES sends WM_UNICONIFY for them.
+  WM_UNICONIFY with a rectangle of a different size only gives the
+  position.
+- Menu commands are typed into the key buffer as BASIC commands
+  (KEY_LINE_KILL first clears the line typed so far), so they only
+  work at the prompt; the menu greys them out otherwise.
+- Ctrl+Q quits (with an alert if a program is in memory), Ctrl+S
+  stops/continues output while BASIC isn't at the prompt.
+- exit() of the BASIC is basic_exit() now (P2C.H), so it doesn't
+  clash with MiNTLib's exit() (CPX unchanged).
+
+Tested in Hatari: TOS 1.04 (ST), TOS 2.06 (Mega STE, ST High and ST
+Low colour), TOS 3.06 (TT High, CHIPB030 with 68882). TOS 1.62 with
+autostart via DESKTOP.INF #Z crashed even for a minimal GEM program,
+so it wasn't tested there. Not tested: MagiC, MultiTOS, Falcon,
+graphics cards, real hardware.
+
+Test: test/hatari.sh <name> APP/CHIPBAS.APP <script> starts the
+program via DESKTOP.INF (#Z) instead of XControl; use TOS 2.06 and
+KEYMAP=de, e.g.
+  TOS=".../TOS v2.06 ... (DE).img" MACHINE=megaste KEYMAP=de \
+    test/hatari.sh app1 APP/CHIPBAS.APP test/scripts/app1.txt
+
+FireBee (CHIPBV4E, -mcpu=5475): cpxmains.S and cpx_bios.S use 68000
+instructions ColdFire lacks (movem -(sp)/(sp)+ or absolute, dbra/dbeq,
+exg, word arithmetic). That target uses GCC/cfcoro.S (context switch
+saving only d2-d7/a2-a6 and sp through a0) and GCC/cfglue.c
+(BreakBASIC/ContBASIC/WaitBASIC/basic_exit, BAS_str*, is0byte,
+make0byte, peekpoke in C) instead; the 68000 builds keep the
+assembler. Checked: no 68000-only instruction in the objects
+(objdump -m m68k:cfv4e), and a 68000 build with cfcoro.S/cfglue.c
+gives the same results as the normal one in Hatari. Not run on a
+FireBee (no ColdFire emulator here).
+
+Window position: saved to CHIPBAS.INF in the start folder on quit
+(screen size + outer rectangle), used at the next start if the screen
+size is the same, clamped to the desktop and snapped to whole
+characters.
+
+Open: the manual window (README in a GEM window).

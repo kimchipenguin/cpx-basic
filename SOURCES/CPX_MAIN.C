@@ -416,9 +416,11 @@ GLOBAL VOID CDECL cpx_key( WORD kstate, WORD key, WORD *evnt )
 	{
 		if(interactive&&(key&0xff)==0)
 		{
-			/* cursor up/down: history of the direct mode (CPX_IO.C) */
+			/* cursor keys: history and line editing (CPX_IO.C) */
 			if((key>>8)==0x48) key=KEY_HIST_UP;
 			else if((key>>8)==0x50) key=KEY_HIST_DOWN;
+			else if((key>>8)==0x4b) key=KEY_CUR_LEFT;
+			else if((key>>8)==0x4d) key=KEY_CUR_RIGHT;
 		}
 		KeyBuffer[woff++]=key;
 		if(woff>=KB_SIZE) woff=0;

@@ -1694,6 +1694,11 @@ Local Void cmdlist( struct LOC_exec *LINK )
 }
 
 Local void set_path(int what)
+#ifdef CHIPBAS_APP
+{
+	(void)what;	/* the GEM application works in the current folder */
+}
+#else
 {
     extern char *cpx_buffer;
     int drv='C'-'A',drvbit;
@@ -1719,6 +1724,7 @@ Local void set_path(int what)
         Dsetpath(buffer,0);
     }
 }
+#endif
 
 #define MYBUFSIZ (4*1024)
 
@@ -3068,6 +3074,14 @@ poke:               cmdpoke(&V);
     ENDTRY(try1);
 }   /*exec*/
 
+#ifdef CHIPBAS_APP
+/* for the GEM application: is there a program to lose? */
+int basic_has_program(void)
+{
+	return linebase != NULL;
+}
+#endif
+
 int basic(int argc, Char *argv[])
 {
     PASCAL_MAIN(argc, argv);
@@ -3085,12 +3099,20 @@ int basic(int argc, Char *argv[])
 	useleft_=0;
 
     Printf(
+#ifdef CHIPBAS_APP
+    "\033E\033p Chipmunk BASIC \033q v1.35 for GEM\n"
+    "Chipmunk BASIC by David Gillespie\n"
+    "CPX-BASIC by Oliver Teuber,\n"
+    "Jan Starzynski and Mia Jaap\n\n"
+    "Help key: list of keywords\n");
+#else
     "\033E\033p Chipmunk-BASIC \033q v1.00\n"
     "by David Gillespie\n\n"
-    "\033p CPX-BASIC \033q v1.30\n"
+    "\033p CPX-BASIC \033q v1.35\n"
     "by Oliver Teuber \n"
     "and Jan Starzynski\n\n"
     "and Mia Jaap (mod.)\n");
+#endif
 
     do
     {

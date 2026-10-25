@@ -28,14 +28,24 @@
 
 /********************************************************************/
 #define TIMEOUT_BASIC	50
+#ifdef CHIPBAS_APP
+/* GEM application: the text area follows the window size (GEM/gemscrn.c) */
+EXTERN	WORD	max_cx, max_cy;
+#define MAX_CX			max_cx
+#define MAX_CY			max_cy
+#else
 #define MAX_CX			32
 #define MAX_CY			22
+#endif
 
 #define KB_SIZE			128
 
 /* cursor up/down in the key buffer while a line is typed in */
 #define KEY_HIST_UP		0x01
 #define KEY_HIST_DOWN	0x02
+#define KEY_LINE_KILL	0x03	/* clears the line typed in (menu commands) */
+#define KEY_CUR_LEFT	0x04	/* cursor left/right in the line typed in */
+#define KEY_CUR_RIGHT	0x05
 
 /********************************************************************/
 EXTERN	VOID	ScrollUp	( VOID						);
@@ -81,6 +91,23 @@ size_t	BAS_strlen	( const char *s						);
 /* Pure C declares these in its own headers, MiNTLib doesn't have them */
 #include <ext.h>
 #undef	putc		/* MiNTLib's macro: use the function from GCC/stdio.c */
+#ifdef CHIPBAS_APP
+/* the GEM application keeps MiNTLib's stdio, GCC/stdio.c has bas_ names */
+#define fopen	bas_fopen
+#define fclose	bas_fclose
+#define fgets	bas_fgets
+#define fseek	bas_fseek
+#define ftell	bas_ftell
+#define setvbuf	bas_setvbuf
+#define putc	bas_putc
+FILE	*bas_fopen(const char *name, const char *mode);
+int		bas_fclose(FILE *fp);
+char	*bas_fgets(char *s, int n, FILE *fp);
+int		bas_fseek(FILE *fp, long offset, int whence);
+long	bas_ftell(FILE *fp);
+int		bas_setvbuf(FILE *fp, char *buf, int type, size_t size);
+int		bas_putc(int c, FILE *fp);
+#endif
 #ifndef Bconout	/* not a macro from osbind.h */
 void	Bconout		( int dev, int c					);
 #endif

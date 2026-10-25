@@ -1,0 +1,54 @@
+{\rtf1\ansi\deff0{\fonttbl{\f0\fswiss Helvetica;}{\f1\fmodern Courier New;}}
+\f0\fs24
+{\pard\sa240\b\fs36 Chipmunk BASIC for GEM\par}
+{\pard\sa160 Chipmunk BASIC 1.35 as a GEM program with a resizable window, based on the control panel module CPX-BASIC. The interpreter is the same as in the CPX, with all its commands and functions.\par}
+{\pard\sb360\sa160\b\fs32 Requirements\par}
+{\pard\sa160 Any Atari ST, STE, TT or Falcon with TOS 1.04 or later, any resolution and colour depth with at least 20 x 5 characters.\par}
+{\pard\sa160 CHIPBAS.APP runs everywhere. CHIPB030.APP needs a 68020 or better with an FPU (TT, Falcon with FPU) and is faster there. CHIPBV4E.APP is the version for the FireBee.\par}
+{\pard\sb360\sa160\b\fs32 Controls\par}
+{\pard\sa160 Menu commands\par}
+{\pard\li360\tx2200 Ctrl+N\tab New (deletes the program)\par}
+{\pard\li360\tx2200 Ctrl+O\tab Open... (LOAD, file selector)\par}
+{\pard\li360\tx2200 Ctrl+M\tab Merge... (MERGE)\par}
+{\pard\li360\tx2200 Ctrl+S\tab Save... (SAVE)\par}
+{\pard\li360\tx2200 Ctrl+Q\tab Quit\par}
+{\pard\li360\tx2200 Ctrl+R\tab Run\par}
+{\pard\li360\tx2200 Ctrl+C\tab Stop a running program\par}
+{\pard\li360\tx2200 Ctrl+L\tab List\par}
+{\pard\li360\tx2200 Help\tab List of all keywords\par}
+{\pard\sa160 While a program runs\par}
+{\pard\li360\tx2200 Ctrl+S\tab Stop the output, Ctrl+S again goes on\par}
+{\pard\li360\tx2200 Ctrl+C\tab Stop (CONTINUE goes on)\par}
+{\pard\sa160 Typing a line (also for INPUT)\par}
+{\pard\li360\tx2200 Left/Right\tab Move the cursor in the line; typing inserts\par}
+{\pard\li360\tx2200 Backspace\tab Delete before the cursor\par}
+{\pard\li360\tx2200 Delete\tab Delete under the cursor\par}
+{\pard\li360\tx2200 Up/Down\tab The last ten lines typed in (only at the > prompt)\par}
+{\pard\sa160 Older output\par}
+{\pard\li360\tx2200 Shift+Up\tab One line further back\par}
+{\pard\li360\tx2200 Shift+Down\tab One line forward\par}
+{\pard\li360\tx2200 Any key\tab Back to the screen\par}
+{\pard\sa160 The commands of the File and Program menus can only be used at the > prompt; Stop only while a program runs.\par}
+{\pard\sb360\sa160\b\fs32 The window\par}
+{\pard\sa160 The text area follows the window size. Make the window bigger for longer lines or more of them. PLOT, LINE and CIRCLE draw in the same area, (0,0) is the lower left corner. Graphics scroll up together with the text, and characters cover the graphics under them.\par}
+{\pard\sa160 The last 500 lines that scrolled off the top are kept (text only, without graphics). The slider and the arrows on the right show them. When the window gets smaller, the lines above go there instead of being lost, and come back when it grows again.\par}
+{\pard\sa160 Where the system has it (MagiC, MultiTOS, XaAES), the window can be iconified; the program goes on running.\par}
+{\pard\sa160 The window's place and size are saved in CHIPBAS.INF next to the program when you quit, and used again at the next start (in the same screen resolution).\par}
+{\pard\sa160 Files are loaded from and saved in the current folder, unless a path is given. LOAD, MERGE and SAVE without a name and RUN "" open the file selector.\par}
+{\pard\sb360\sa160\b\fs32 Additions to CPX-BASIC\par}
+{\pard\li360\fi-240\sa80 \bullet  GEM window of any size instead of the 32 x 22 characters of the CPX\par}
+{\pard\li360\fi-240\sa80 \bullet  System font instead of the 8x8 font\par}
+{\pard\li360\fi-240\sa80 \bullet  Menu bar with keyboard shortcuts\par}
+{\pard\li360\fi-240\sa80 \bullet  The program asks before quitting when a program is in memory\par}
+{\pard\li360\fi-240\sa80 \bullet  The last 500 lines of output with a slider, iconify\par}
+{\pard\li360\fi-240\sa80 \bullet  Remembers the window position\par}
+{\pard\li360\fi-240\sa80 \bullet  A version for the FireBee\par}
+{\pard\li360\fi-240\sa80 \bullet  Cursor left/right and Delete in the line being typed (also in the CPX)\par}
+{\pard\sb360\sa160\b\fs32 Differences to CPX-BASIC\par}
+{\pard\li360\fi-240\sa80 \bullet  Ctrl+Q quits; on the CPX it typed BYE. Ctrl+S stops and continues the output; on the CPX Ctrl+Q went on.\par}
+{\pard\li360\fi-240\sa80 \bullet  The Ctrl keys that typed keywords on the CPX (Ctrl+F for FOR, ...) are not there, apart from the menu shortcuts.\par}
+{\pard\li360\fi-240\sa80 \bullet  Clicking characters with the mouse does not type them.\par}
+{\pard\sb360\sa160\b\fs32 Notes\par}
+{\pard\sa160 Chipmunk BASIC by David Gillespie, CPX-BASIC by Oliver Teuber, Jan Starzynski and Mia Jaap. Freeware under the GNU General Public License.\par}
+{\pard\sa160 Ported using Claude AI tools, design by Kimchipenguin (Mia)\par}
+}

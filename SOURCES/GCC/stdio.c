@@ -25,6 +25,19 @@
 #undef putc			/* MiNTLib has macros for these */
 #undef fputc
 
+#ifdef CHIPBAS_APP
+/* the GEM application keeps MiNTLib's stdio for itself; CPX-BASIC calls
+   these under their bas_ names (GLO.H) */
+#define fopen	bas_fopen
+#define fclose	bas_fclose
+#define fgets	bas_fgets
+#define fseek	bas_fseek
+#define ftell	bas_ftell
+#define setvbuf	bas_setvbuf
+#define putc	bas_putc
+#define fputc	bas_fputc
+#endif
+
 #define DEFAULT_BUFSIZ 1024
 
 struct sfile {
@@ -228,6 +241,7 @@ int fseek(FILE *fp, long offset, int whence)
 	return 0;
 }
 
+#ifndef CHIPBAS_APP
 /*
  * MiNTLib's vfprintf() (needed by sprintf() for the floating point
  * formats) references the stream layer for real files, which reaches
@@ -244,3 +258,4 @@ long __stdio_write(void *c, const char *b, size_t n) { (void)c; (void)b; (void)n
 long __stdio_text_read(void *c, char *b, size_t n) { (void)c; (void)b; (void)n; return -1; }
 long __stdio_text_write(void *c, const char *b, size_t n) { (void)c; (void)b; (void)n; return -1; }
 int __stdio_seek(void *c, long *pos, int whence) { (void)c; (void)pos; (void)whence; return -1; }
+#endif /* !CHIPBAS_APP */

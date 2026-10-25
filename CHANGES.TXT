@@ -1,3 +1,14 @@
+==> Version 1.35 21.10.2026; Mia Jaap (mj@jaapan.de)
+* Chipmunk BASIC for GEM (APP/CHIPBAS.APP, CHIPB030.APP, CHIPBV4E.APP)
+   the same BASIC as a GEM program with a resizable window, the system
+      font, menu bar and keyboard shortcuts (see APP/README.TXT)
+   the last 500 lines of output can be scrolled back (slider,
+      Shift+Up/Down); resizing the window keeps them
+   iconify (MagiC, MultiTOS, XaAES), window position saved in CHIPBAS.INF
+   FireBee version (CHIPBV4E.APP)
+* CPX and GEM version
+   cursor left/right while typing a line (also for INPUT), typing
+      inserts, Delete deletes the character under the cursor
 ==> Version 1.30 16.10.2026; Mia Jaap (mj@jaapan.de)
 * new functions
    INSTR$(h$,n$): The position of n$ in h$. 0, if not found

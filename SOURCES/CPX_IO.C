@@ -6,6 +6,10 @@
 #include "p2c.h"
 #include "glo.h"
 
+/* P2C.H sends memmove to p2c's my_memmove, which isn't part of this
+   project; the C libraries have the real one */
+#undef memmove
+
 #ifdef __GNUC__
 /* MiNTLib's iscntrl() is ISO 8859-1, where 128-159 are control codes.
    In the Atari character set these are letters („, ”, , œ ...);
@@ -67,9 +71,33 @@ LOCAL VOID BackChar( VOID )
 	if(!cm) DrawCursor(cx, cy);
 }
 
-/* replaces the line typed in so far (off characters) by s			*/
-LOCAL WORD ShowLine( BYTE *string, WORD off, BYTE *s )
+/* moves the cursor n characters back, also across line ends			*/
+LOCAL VOID CursorBack( WORD n )
 {
+	if(!cm) DrawCursor(cx, cy);
+	while(n-->0)
+	{
+		if(cx>0) cx--;
+		else if(cy>0)
+		{
+			cy--;
+			cx=MAX_CX-1;
+		}
+	}
+	if(!cm) DrawCursor(cx, cy);
+}
+
+/* writes string[from..to-1]; the cursor ends behind it					*/
+LOCAL VOID OutPart( BYTE *string, WORD from, WORD to )
+{
+	while(from<to) OutChar((UBYTE)string[from++]);
+}
+
+/* replaces the line typed in so far (off characters, cursor at pos)
+   by s; the cursor is at its end afterwards							*/
+LOCAL WORD ShowLine( BYTE *string, WORD off, WORD pos, BYTE *s )
+{
+	OutPart(string,pos,off);			/* to the end of the line	*/
 	while(off>0)
 	{
 		BackChar();
@@ -78,7 +106,7 @@ LOCAL WORD ShowLine( BYTE *string, WORD off, BYTE *s )
 	while(*s&&off<255)
 	{
 		string[off++]=*s;
-		OutChar(*s++);
+		OutChar((UBYTE)*s++);
 	}
 	string[off]=0;
 	return off;
@@ -95,11 +123,17 @@ LOCAL VOID AddHistory( BYTE *s )
 	if(hist_count<HIST_NUM) hist_count++;
 }
 
+/*
+ * Reads a line. From the keyboard (stdin) it is a small line editor:
+ * cursor left/right (KEY_CUR_LEFT/RIGHT), typing inserts, Backspace
+ * deletes before and Delete under the cursor; in direct mode
+ * (cmd_history) also the history and KEY_LINE_KILL.
+ */
 GLOBAL BYTE *FGets(FILE *fp, BYTE *string)
 {
 	WORD browse=0;			/* 0: new line, n: n-th last line	*/
 	static BYTE saved[256];	/* the new line while browsing		*/
-	WORD off=0, key;
+	WORD off=0, pos=0, key;	/* length of the line, cursor in it	*/
 	char *s;
 	*string=0;
 	if(fp==stdin)
@@ -114,7 +148,7 @@ GLOBAL BYTE *FGets(FILE *fp, BYTE *string)
 				if(ctrl) return 0; /* CTRL-C */
 			}
 	
-			key=KeyBuffer[roff++];
+			key=(UBYTE)KeyBuffer[roff++];
 			if(roff>=KB_SIZE)
 				roff=0;
 	
@@ -123,12 +157,20 @@ GLOBAL BYTE *FGets(FILE *fp, BYTE *string)
 			case 0:
 				break;
 
+			case KEY_LINE_KILL:
+				if(cmd_history)
+				{
+					off=pos=ShowLine(string,off,pos,"");
+					browse=0;
+				}
+				break;
+
 			case KEY_HIST_UP:
 				if(cmd_history&&browse<hist_count)
 				{
 					if(browse==0) strcpy(saved,string);
 					browse++;
-					off=ShowLine(string,off,
+					off=pos=ShowLine(string,off,pos,
 						history[(hist_next+HIST_NUM-browse)%HIST_NUM]);
 				}
 				break;
@@ -137,20 +179,53 @@ GLOBAL BYTE *FGets(FILE *fp, BYTE *string)
 				if(cmd_history&&browse>0)
 				{
 					browse--;
-					off=ShowLine(string,off,browse==0 ? saved :
+					off=pos=ShowLine(string,off,pos,browse==0 ? saved :
 						history[(hist_next+HIST_NUM-browse)%HIST_NUM]);
 				}
 				break;
-			case 8:
-			case 127:
-				if(off>0)
+
+			case KEY_CUR_LEFT:
+				if(pos>0)
 				{
-					OutChar(8);
-					string[--off]=0;
+					pos--;
+					CursorBack(1);
+				}
+				break;
+
+			case KEY_CUR_RIGHT:
+				if(pos<off)
+				{
+					OutChar((UBYTE)string[pos]);
+					pos++;
+				}
+				break;
+
+			case 8:					/* Backspace: before the cursor	*/
+				if(pos>0)
+				{
+					CursorBack(1);
+					pos--;
+					memmove(string+pos,string+pos+1,off-pos);
+					off--;
+					OutPart(string,pos,off);
+					OutChar(' ');
+					CursorBack(off-pos+1);
+				}
+				break;
+
+			case 127:				/* Delete: under the cursor		*/
+				if(pos<off)
+				{
+					memmove(string+pos,string+pos+1,off-pos);
+					off--;
+					OutPart(string,pos,off);
+					OutChar(' ');
+					CursorBack(off-pos+1);
 				}
 				break;
 	
 			case 13:
+				OutPart(string,pos,off);	/* cursor to the end	*/
 				OutChar(10);
 				OutChar(13);
 				interactive=0;
@@ -158,12 +233,17 @@ GLOBAL BYTE *FGets(FILE *fp, BYTE *string)
 				return string;
 	
 			default:
+				if(key<32)		/* Tab, Esc ...: would confuse the editor */
+					break;
 				if(off<255)
 				{
-					string[off++]=key;
-					string[off	]=0;
+					memmove(string+pos+1,string+pos,off-pos+1);
+					string[pos]=key;
+					off++;
+					OutPart(string,pos,off);
+					pos++;
+					CursorBack(off-pos);
 				}
-				OutChar(key);
 				break;
 			}
 		}

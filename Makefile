@@ -6,6 +6,10 @@
 #   make BASIC030   68020+ with FPU, own 8x8 font   -> CPX/BASIC030.CPX
 #   make BASICA00   68000, system font (LINE-A)     -> CPX/BASICA00.CPX
 #   make BASICA30   68020+ with FPU, system font    -> CPX/BASICA30.CPX
+#   make app        the GEM applications into APP/:
+#   make CHIPBAS    68000            -> APP/CHIPBAS.APP
+#   make CHIPB030   68020+ with FPU  -> APP/CHIPB030.APP
+#   make CHIPBV4E   ColdFire V4e     -> APP/CHIPBV4E.APP (FireBee)
 #   make clean
 #
 # Replaces the Pure C projects SOURCES/BASIC*.PRJ and BASBUILD.PRG.
@@ -21,7 +25,7 @@ STRIP   = $(CROSS)strip
 PYTHON  = python3
 
 # CPX version (CPX header; the start-up text is in BASIC.C)
-VERSION = 0x130
+VERSION = 0x135
 
 SRC     = SOURCES
 GCCDIR  = $(SRC)/GCC
@@ -58,7 +62,8 @@ FONT_BASIC030 = 1
 FONT_BASICA00 = 0
 FONT_BASICA30 = 0
 
-all: $(VARIANTS)
+all: $(VARIANTS) app
+cpx: $(VARIANTS)
 
 # cpxstart.o has to come first: it is the start of the text segment
 define VARIANT_RULES
@@ -105,7 +110,58 @@ $(OBJDIR)/font8x8.s: $(SRC)/FONT8X8.S
 	    if (/^\s*font8x8:/) { print "\t.data\n\t.globl\t_font8x8\n_font8x8:\n" } \
 	    elsif (/^\s*\.dc\.b\s+%([01]+)/) { print "\t.byte\t0b$$1\n" }' $< > $@
 
+#--------------------------------------------------------------------
+# Chipmunk BASIC as a GEM application (SOURCES/GEM, built with -DCHIPBAS_APP):
+# the same interpreter, a GEM window instead of XControl, the VDI system
+# font instead of the 8x8 font. Normal MiNTLib startup and malloc().
+#--------------------------------------------------------------------
+GEMDIR   = $(SRC)/GEM
+APPDIR   = APP
+APPS     = CHIPBAS CHIPB030 CHIPBV4E
+CPU_CHIPBAS  = -m68000
+CPU_CHIPB030 = -m68020-60
+CPU_CHIPBV4E = -mcpu=5475
+# the coroutine switch and the string functions: 68000 assembler, or
+# for ColdFire (no movem -(sp), dbra, exg ...) cfcoro.S + cfglue.c
+ASM_CHIPBAS  = cpxmains cpx_bios
+ASM_CHIPB030 = cpxmains cpx_bios
+ASM_CHIPBV4E = cfcoro cfglue
+APP_CSRCS = $(SRC)/BASIC.C $(SRC)/CPX_IO.C $(SRC)/TOKSTR.C $(SRC)/P2CLIB.C \
+            $(GCCDIR)/tosglue.c $(GCCDIR)/stdio.c \
+            $(GEMDIR)/gemmain.c $(GEMDIR)/gemscrn.c
+
+app: $(APPS)
+
+define APP_RULES
+$(1): $(APPDIR)/$(1).APP
+
+$(1)_OBJS = $(patsubst %,$(OBJDIR)/$(1)/%.o,$(basename $(notdir $(APP_CSRCS))) $(ASM_$(1)))
+
+$(OBJDIR)/$(1)/%.o: $(SRC)/%.C $(HDRS)
+	@mkdir -p $$(@D)
+	$(CC) $(CPU_$(1)) $(CFLAGS) -DCHIPBAS_APP -c -o $$@ -x c $$<
+
+$(OBJDIR)/$(1)/%.o: $(GCCDIR)/%.c $(HDRS)
+	@mkdir -p $$(@D)
+	$(CC) $(CPU_$(1)) $(CFLAGS) -DCHIPBAS_APP -fno-builtin -c -o $$@ $$<
+
+$(OBJDIR)/$(1)/%.o: $(GEMDIR)/%.c $(HDRS)
+	@mkdir -p $$(@D)
+	$(CC) $(CPU_$(1)) $(CFLAGS) -DCHIPBAS_APP -c -o $$@ $$<
+
+$(OBJDIR)/$(1)/%.o: $(GCCDIR)/%.S
+	@mkdir -p $$(@D)
+	$(CC) $(CPU_$(1)) $(ASFLAGS) -DCHIPBAS_APP -c -o $$@ $$<
+
+$(APPDIR)/$(1).APP: $$($(1)_OBJS)
+	@mkdir -p $$(@D)
+	$(CC) $(CPU_$(1)) -o $$@ $$^ $(LIBS)
+	$(STRIP) $$@
+endef
+
+$(foreach a,$(APPS),$(eval $(call APP_RULES,$(a))))
+
 clean:
 	rm -rf $(OBJDIR)
 
-.PHONY: all clean $(VARIANTS)
+.PHONY: all cpx app clean $(VARIANTS) $(APPS)
