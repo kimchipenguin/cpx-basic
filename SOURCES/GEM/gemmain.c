@@ -37,6 +37,7 @@ extern int scr_set_view(long v);
 extern WORD scr_view(void);
 extern void scr_slider(WORD *size, WORD *pos);
 extern int scr_set_slider(WORD pos);
+extern void scr_set_colours(WORD back, WORD fore);
 
 #define APP_NAME	"  Chipmunk BASIC"
 #define WIN_KIND	(NAME | CLOSER | FULLER | MOVER | SIZER | UPARROW | DNARROW | VSLIDE)
@@ -279,7 +280,7 @@ static void show_keywords(void)
 
 static void about(void)
 {
-	form_alert(1, "[1][Chipmunk BASIC 1.35 for GEM|"
+	form_alert(1, "[1][Chipmunk BASIC 1.36 for GEM|"
 		"Chipmunk BASIC: David Gillespie|"
 		"CPX-BASIC: Oliver Teuber,|Jan Starzynski, Mia Jaap|"
 		"Freeware under the GNU GPL][ OK ]");
@@ -630,8 +631,65 @@ static int can_iconify(void)
 }
 
 /*--------------------------------------------------------------------
- * Window position, kept in CHIPBAS.INF in the folder the program was
- * started from (plain text: "CHIPBAS 1", "screen w h", "window x y w h")
+ * Window colour: the Colors protocol (Holger Weets, as in Pong). A colour
+ * program sends COLOR_ID with the mouse position (msg[3], msg[4]) and a
+ * VDI colour index (msg[5]); dropped on the window it becomes the
+ * background. Kept per colour depth, so a colour from 256 colours can't
+ * make the text unreadable in monochrome. White = the standard again.
+ *------------------------------------------------------------------*/
+
+#define COLOR_ID	0xC010
+#define MAX_PLANES	32
+
+static WORD ncolors, planes;			/* of the screen */
+static WORD colours[MAX_PLANES + 1];	/* background per depth, -1 = white */
+
+/* light colours get black text, dark ones white */
+static int light_colour(WORD index)
+{
+	WORD rgb[3];
+
+	if (index == G_WHITE)
+		return TRUE;
+	if (index == G_BLACK)
+		return FALSE;
+	vq_color(vh, index, 1, rgb);
+	return (3L * rgb[0] + 6L * rgb[1] + rgb[2]) / 10 > 500;
+}
+
+static void apply_colours(void)
+{
+	WORD back = G_WHITE;
+
+	if (planes >= 1 && planes <= MAX_PLANES && colours[planes] >= 0)
+		back = colours[planes];
+	scr_set_colours(back, light_colour(back) ? G_BLACK : G_WHITE);
+}
+
+/* a colour dropped on the window */
+static void drop_colour(WORD mx, WORD my, WORD index)
+{
+	GRECT work;
+
+	if (win < 0 || iconified || wind_find(mx, my) != win)
+		return;
+	work_area(&work);
+	if (mx < work.g_x || mx >= work.g_x + work.g_w ||
+		my < work.g_y || my >= work.g_y + work.g_h)
+		return;
+	if (index < 0 || (planes <= 8 && index >= ncolors))
+		return;
+	if (planes < 1 || planes > MAX_PLANES)
+		return;
+	colours[planes] = index == G_WHITE ? -1 : index;
+	apply_colours();
+	redraw_all();
+}
+
+/*--------------------------------------------------------------------
+ * Window position and colours, kept in CHIPBAS.INF in the folder the
+ * program was started from (plain text: "CHIPBAS 1", "screen w h",
+ * "window x y w h", then "colour planes index" for each colour depth)
  *------------------------------------------------------------------*/
 
 static char inf_name[200];
@@ -670,7 +728,7 @@ static long next_number(const char **t)
 /* the saved window rectangle, if it was saved in this screen size */
 static int load_position(GRECT *r)
 {
-	char buf[128];
+	char buf[512];
 	const char *t = buf;
 	long h, n, v[7];
 	int i;
@@ -696,11 +754,38 @@ static int load_position(GRECT *r)
 	return r->g_w > 0 && r->g_h > 0;
 }
 
+/* the colours from CHIPBAS.INF ("colour planes index" lines) */
+static void load_colours(void)
+{
+	char buf[512];
+	const char *t;
+	long h, n, p, i;
+
+	for (p = 0; p <= MAX_PLANES; p++)
+		colours[p] = -1;
+	h = Fopen(inf_name, 0);
+	if (h < 0)
+		return;
+	n = Fread((short)h, sizeof(buf) - 1, buf);
+	Fclose((short)h);
+	if (n <= 0)
+		return;
+	buf[n] = 0;
+	for (t = buf; (t = strstr(t, "colour ")) != NULL; ) {
+		t += 7;
+		p = next_number(&t);
+		i = next_number(&t);
+		if (p >= 1 && p <= MAX_PLANES && i >= 0)
+			colours[p] = (WORD)i;
+	}
+}
+
 static void save_position(void)
 {
-	char buf[128];
+	char buf[512];
 	GRECT r;
 	long h;
+	int p;
 
 	if (iconified)
 		r = before_icon;
@@ -711,6 +796,9 @@ static void save_position(void)
 		return;
 	sprintf(buf, "CHIPBAS 1\r\nscreen %d %d\r\nwindow %d %d %d %d\r\n",
 		screen_w, screen_h, r.g_x, r.g_y, r.g_w, r.g_h);
+	for (p = 1; p <= MAX_PLANES; p++)
+		if (colours[p] >= 0)
+			sprintf(buf + strlen(buf), "colour %d %d\r\n", p, colours[p]);
 	Fwrite((short)h, strlen(buf), buf);
 	Fclose((short)h);
 }
@@ -795,6 +883,10 @@ static void do_message(WORD *msg)
 {
 	GRECT r;
 
+	if ((unsigned short)msg[0] == COLOR_ID) {
+		drop_colour(msg[3], msg[4], msg[5]);
+		return;
+	}
 	switch (msg[0]) {
 	case MN_SELECTED:
 		do_menu(id_of[msg[4]]);
@@ -933,6 +1025,12 @@ int main(void)
 	wind_get(0, WF_WORKXYWH, &desk.g_x, &desk.g_y, &desk.g_w, &desk.g_h);
 	screen_w = work_out[0] + 1;
 	screen_h = work_out[1] + 1;
+	ncolors = work_out[13];
+	{
+		WORD ext[57];
+		vq_extnd(vh, 1, ext);
+		planes = ext[4];
+	}
 	build_menu(screen_w);
 
 	/* under MultiTOS/MagiC: our name in the application list, and we
@@ -943,6 +1041,8 @@ int main(void)
 		shel_write(SWM_NEWMSG, NM_APTERM, 0, NULL, NULL);
 
 	inf_init();
+	load_colours();
+	apply_colours();
 	if (open_window()) {
 		menu_bar(menu, 1);
 		event_loop();

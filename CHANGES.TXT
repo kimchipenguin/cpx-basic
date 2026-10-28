@@ -1,3 +1,12 @@
+==> Version 1.36 28.10.2026; Mia Jaap (mj@jaapan.de)
+* Chipmunk BASIC for GEM
+   window background colour with the Colors protocol: drop a colour from
+      a colour program on the window; text and graphics turn black or
+      white to stay readable, white is the standard again. Saved for each
+      colour depth in CHIPBAS.INF
+* other changes
+   make dist: dist/ with the CPX modules, the programs, the docs and the
+      samples
 ==> Version 1.35 21.10.2026; Mia Jaap (mj@jaapan.de)
 * Chipmunk BASIC for GEM (APP/CHIPBAS.APP, CHIPB030.APP, CHIPBV4E.APP)
    the same BASIC as a GEM program with a resizable window, the system

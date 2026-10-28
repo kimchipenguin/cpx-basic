@@ -199,4 +199,17 @@ Window position: saved to CHIPBAS.INF in the start folder on quit
 size is the same, clamped to the desktop and snapped to whole
 characters.
 
+Window colour (1.36): the Colors protocol as in Pong (Holger Weets,
+COLOR_ID $C010, msg[3]/msg[4] mouse position, msg[5] VDI index). A
+colour dropped on the work area becomes the background for this colour
+depth (planes from vq_extnd); text and graphics are black on light and
+white on dark colours (vq_color luminance), reverse text swaps them,
+white is the standard again. Saved on quit as "colour planes index"
+lines in CHIPBAS.INF. Tested by putting the lines into CHIPBAS.INF
+(mono inverted, ST Low green); the message itself only by the user.
+
+make dist (1.36): dist/CPX, dist/APP (programs, README.TXT, readme.rtf
+made from README.TXT), dist/DOC (BASIC.TXT, CPXBASIC.TXT, COPYING,
+CHANGES.TXT), dist/SAMPLES.
+
 Open: the manual window (README in a GEM window).

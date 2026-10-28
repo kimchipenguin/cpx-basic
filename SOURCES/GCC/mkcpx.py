@@ -7,7 +7,7 @@ which was taken from the Pure C build; only the version is set here.
 Like BASBUILD, a "vX.yz" placeholder in the data segment is replaced
 by the version number.
 
-usage: mkcpx.py header.bin program.prg out.cpx [version, default 0x135]
+usage: mkcpx.py header.bin program.prg out.cpx [version, default 0x136]
 """
 import struct
 import sys
@@ -17,7 +17,7 @@ def main():
     if len(sys.argv) not in (4, 5):
         sys.exit(__doc__)
     head_fn, prg_fn, cpx_fn = sys.argv[1:4]
-    version = int(sys.argv[4], 0) if len(sys.argv) == 5 else 0x135
+    version = int(sys.argv[4], 0) if len(sys.argv) == 5 else 0x136
 
     head = bytearray(open(head_fn, 'rb').read())
     if len(head) != 512 or head[0:2] != b'\x00\x64':

@@ -11,7 +11,8 @@
  *    (text only). The window shows the live screen or, scrolled back
  *    with the slider, `view' lines further up.
  * As on the CPX, a character covers the graphics under its cell and
- * graphics scroll together with the text.
+ * graphics scroll together with the text. Background and text colour
+ * come from gemmain.c (Colors protocol).
  *
  * The functions called by CPX_IO.C and BASIC.C (PutChar, ScrollUp, cls,
  * plotpoint, ...) only change the grid and the bitmap and note the
@@ -51,6 +52,15 @@ typedef struct {
 static SBLINE sb[SB_MAX];
 static WORD sb_first, sb_count;
 static WORD view;				/* lines scrolled back, 0 = live screen */
+
+/* window colours (VDI indexes): background and text/graphics */
+static WORD back_col = G_WHITE, fore_col = G_BLACK;
+
+void scr_set_colours(WORD back, WORD fore)
+{
+	back_col = back;
+	fore_col = fore;
+}
 
 #define GFX_W ((long)max_cx * cw)
 #define GFX_H ((long)max_cy * ch)
@@ -498,7 +508,7 @@ static void text(WORD vh, WORD x, WORD y, const unsigned char *s, WORD n)
  */
 void scr_draw(WORD vh, const GRECT *work, const GRECT *clip, WORD y0, WORD y1)
 {
-	static WORD colors[2] = { G_BLACK, G_WHITE };
+	WORD colors[2];
 	MFDB screen = { 0 };
 	WORD pxy[8], y, x, x0, c0, c1, n, gy, len;
 	GRECT r, area;
@@ -512,6 +522,8 @@ void scr_draw(WORD vh, const GRECT *work, const GRECT *clip, WORD y0, WORD y1)
 	vs_clip(vh, 1, pxy);
 	vsf_interior(vh, FIS_SOLID);
 	vsf_perimeter(vh, 0);
+	colors[0] = fore_col;			/* graphics: set pixels */
+	colors[1] = back_col;
 
 	for (y = y0; y <= y1 && y < max_cy; y++) {
 		r.g_x = work->g_x;
@@ -546,7 +558,7 @@ void scr_draw(WORD vh, const GRECT *work, const GRECT *clip, WORD y0, WORD y1)
 			pxy[7] = area.g_y + area.g_h - 1;
 			vrt_cpyfm(vh, MD_REPLACE, pxy, &gfx_mfdb, &screen, colors);
 		} else
-			fill(vh, &area, G_WHITE, MD_REPLACE);
+			fill(vh, &area, back_col, MD_REPLACE);
 
 		/* the columns inside the clipping area */
 		c0 = (area.g_x - work->g_x) / cw;
@@ -573,7 +585,7 @@ void scr_draw(WORD vh, const GRECT *work, const GRECT *clip, WORD y0, WORD y1)
 				;
 			if (last > first) {
 				vswr_mode(vh, MD_TRANS);
-				vst_color(vh, G_BLACK);
+				vst_color(vh, fore_col);
 				text(vh, r.g_x + (c0 + first) * cw, r.g_y, plain + first, last - first);
 			}
 		}
@@ -591,9 +603,9 @@ void scr_draw(WORD vh, const GRECT *work, const GRECT *clip, WORD y0, WORD y1)
 			area.g_y = r.g_y;
 			area.g_w = (x - x0) * cw;
 			area.g_h = ch;
-			fill(vh, &area, G_BLACK, MD_REPLACE);
+			fill(vh, &area, fore_col, MD_REPLACE);
 			vswr_mode(vh, MD_TRANS);
-			vst_color(vh, G_WHITE);
+			vst_color(vh, back_col);
 			text(vh, area.g_x, area.g_y, row + x0, x - x0);
 		}
 
@@ -615,7 +627,7 @@ void scr_draw(WORD vh, const GRECT *work, const GRECT *clip, WORD y0, WORD y1)
 		r.g_h = work->g_h - (WORD)GFX_H;
 		area = *clip;
 		if (intersect(&r, &area))
-			fill(vh, &area, G_WHITE, MD_REPLACE);
+			fill(vh, &area, back_col, MD_REPLACE);
 	}
 	r.g_x = work->g_x + (WORD)GFX_W;
 	r.g_y = work->g_y + y0 * ch;
@@ -623,7 +635,7 @@ void scr_draw(WORD vh, const GRECT *work, const GRECT *clip, WORD y0, WORD y1)
 	r.g_h = (y1 - y0 + 1) * ch;
 	area = *clip;
 	if (intersect(&r, &area))
-		fill(vh, &area, G_WHITE, MD_REPLACE);
+		fill(vh, &area, back_col, MD_REPLACE);
 
 	vswr_mode(vh, MD_REPLACE);
 	vs_clip(vh, 0, pxy);

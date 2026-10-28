@@ -10,6 +10,8 @@
 #   make CHIPBAS    68000            -> APP/CHIPBAS.APP
 #   make CHIPB030   68020+ with FPU  -> APP/CHIPB030.APP
 #   make CHIPBV4E   ColdFire V4e     -> APP/CHIPBV4E.APP (FireBee)
+#   make dist       everything for others in dist/: CPX/, APP/, DOC/,
+#                   SAMPLES/
 #   make clean
 #
 # Replaces the Pure C projects SOURCES/BASIC*.PRJ and BASBUILD.PRG.
@@ -25,7 +27,7 @@ STRIP   = $(CROSS)strip
 PYTHON  = python3
 
 # CPX version (CPX header; the start-up text is in BASIC.C)
-VERSION = 0x135
+VERSION = 0x136
 
 SRC     = SOURCES
 GCCDIR  = $(SRC)/GCC
@@ -161,7 +163,26 @@ endef
 
 $(foreach a,$(APPS),$(eval $(call APP_RULES,$(a))))
 
+# the manual for modern systems, from the one for the ST
+$(APPDIR)/readme.rtf: $(APPDIR)/README.TXT tools/rtf.py
+	$(PYTHON) tools/rtf.py $< $@
+
+#--------------------------------------------------------------------
+# dist/: the finished files for others (not the user's CHIPBAS.INF)
+#--------------------------------------------------------------------
+DISTDIR  = dist
+DIST_DOC = DOC/BASIC.TXT DOC/CPXBASIC.TXT DOC/COPYING CHANGES.TXT
+
+dist: all $(APPDIR)/readme.rtf
+	rm -rf $(DISTDIR)
+	mkdir -p $(DISTDIR)/CPX $(DISTDIR)/APP $(DISTDIR)/DOC $(DISTDIR)/SAMPLES
+	cp $(foreach v,$(VARIANTS),$(CPXDIR)/$(v).CPX) $(DISTDIR)/CPX/
+	cp $(foreach a,$(APPS),$(APPDIR)/$(a).APP) $(APPDIR)/README.TXT \
+	   $(APPDIR)/readme.rtf $(DISTDIR)/APP/
+	cp $(DIST_DOC) $(DISTDIR)/DOC/
+	cp SAMPLES/*.BAS SAMPLES/*.TXT $(DISTDIR)/SAMPLES/
+
 clean:
 	rm -rf $(OBJDIR)
 
-.PHONY: all cpx app clean $(VARIANTS) $(APPS)
+.PHONY: all cpx app dist clean $(VARIANTS) $(APPS)

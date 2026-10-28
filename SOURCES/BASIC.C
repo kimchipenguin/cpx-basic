@@ -3100,7 +3100,7 @@ int basic(int argc, Char *argv[])
 
     Printf(
 #ifdef CHIPBAS_APP
-    "\033E\033p Chipmunk BASIC \033q v1.35 for GEM\n"
+    "\033E\033p Chipmunk BASIC \033q v1.36 for GEM\n"
     "Chipmunk BASIC by David Gillespie\n"
     "CPX-BASIC by Oliver Teuber,\n"
     "Jan Starzynski and Mia Jaap\n\n"
@@ -3108,7 +3108,7 @@ int basic(int argc, Char *argv[])
 #else
     "\033E\033p Chipmunk-BASIC \033q v1.00\n"
     "by David Gillespie\n\n"
-    "\033p CPX-BASIC \033q v1.35\n"
+    "\033p CPX-BASIC \033q v1.36\n"
     "by Oliver Teuber \n"
     "and Jan Starzynski\n\n"
     "and Mia Jaap (mod.)\n");
